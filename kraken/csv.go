@@ -4,7 +4,6 @@ import (
 	"encoding/csv"
 	"io"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
@@ -76,36 +75,17 @@ func (kr *Kraken) ParseCSV(reader io.Reader, account string) (err error) {
 					tx.Type == "margin" ||
 					tx.Type == "settled" ||
 					tx.Type == "receive" {
-					found := false
-					for i, ex := range kr.TXsByCategory["Exchanges"] {
-						if strings.Contains(ex.ID, tx.RefId) {
-							found = true
-							if kr.TXsByCategory["Exchanges"][i].Items == nil {
-								kr.TXsByCategory["Exchanges"][i].Items = make(map[string]wallet.Currencies)
-							}
-							if tx.Amount.IsPositive() {
-								kr.TXsByCategory["Exchanges"][i].Items["To"] = append(kr.TXsByCategory["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
-							} else {
-								kr.TXsByCategory["Exchanges"][i].Items["From"] = append(kr.TXsByCategory["Exchanges"][i].Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
-							}
-							if !tx.Fee.IsZero() {
-								kr.TXsByCategory["Exchanges"][i].Items["Fee"] = append(kr.TXsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
-							}
-						}
+					t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
+					t.Items = make(map[string]wallet.Currencies)
+					if !tx.Fee.IsZero() {
+						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
 					}
-					if !found {
-						t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
-						t.Items = make(map[string]wallet.Currencies)
-						if !tx.Fee.IsZero() {
-							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
-						}
-						if tx.Amount.IsPositive() {
-							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
-						} else {
-							t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
-						}
-						kr.TXsByCategory["Exchanges"] = append(kr.TXsByCategory["Exchanges"], t)
+					if tx.Amount.IsPositive() {
+						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
+					} else {
+						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
 					}
+					kr.TXsByCategory["Exchanges"] = append(kr.TXsByCategory["Exchanges"], t)
 				} else if tx.Type == "deposit" {
 					t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 					t.Items = make(map[string]wallet.Currencies)

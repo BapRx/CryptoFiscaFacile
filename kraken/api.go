@@ -68,36 +68,17 @@ func (api *api) categorize() {
 			tx.Type == "margin" ||
 			tx.Type == "settled" ||
 			tx.Type == "receive" {
-			found := false
-			for i, ex := range api.txsByCategory["Exchanges"] {
-				if ex.SimilarDate(2*time.Second, tx.Time) {
-					found = true
-					if api.txsByCategory["Exchanges"][i].Items == nil {
-						api.txsByCategory["Exchanges"][i].Items = make(map[string]wallet.Currencies)
-					}
-					if tx.Amount.IsPositive() {
-						api.txsByCategory["Exchanges"][i].Items["To"] = append(api.txsByCategory["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
-					} else {
-						api.txsByCategory["Exchanges"][i].Items["From"] = append(api.txsByCategory["Exchanges"][i].Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
-					}
-					if !tx.Fee.IsZero() {
-						api.txsByCategory["Exchanges"][i].Items["Fee"] = append(api.txsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
-					}
-				}
+			t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
+			t.Items = make(map[string]wallet.Currencies)
+			if tx.Amount.IsPositive() {
+				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
+			} else {
+				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
 			}
-			if !found {
-				t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
-				t.Items = make(map[string]wallet.Currencies)
-				if tx.Amount.IsPositive() {
-					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
-				} else {
-					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
-				}
-				if !tx.Fee.IsZero() {
-					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
-				}
-				api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
+			if !tx.Fee.IsZero() {
+				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
 			}
+			api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
 		} else if tx.Type == "deposit" {
 			t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 			t.Items = make(map[string]wallet.Currencies)

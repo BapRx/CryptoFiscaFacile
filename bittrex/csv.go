@@ -71,6 +71,11 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader, cat category.Category, account s
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing price", r[8])
 				}
+				if tx.Operation == "BUY" {
+					price = price.Sub(tx.Fee)
+				} else if tx.Operation == "SELL" {
+					price = price.Add(tx.Fee)
+				}
 				if tx.Time.Before(firstTimeUsed) {
 					firstTimeUsed = tx.Time
 				}

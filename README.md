@@ -356,6 +356,20 @@ Pour les "Transaction Type" "Send" du CSV, les frais ne sont pas renseignés, l'
 
 Les colones du CSV doivent être : `Timestamp,Transaction Type,Asset,Quantity Transacted,EUR Spot Price at Transaction,EUR Subtotal,EUR Total (inclusive of fees),EUR Fees,Notes`
 
+#### Coinbase Pro [![Support bon](https://img.shields.io/badge/support-bon-blue)](#coinbase-pro-)
+
+```
+  --coinbase-pro-account
+        Coinbase Pro Account CSV file
+  --coinbase-pro-fills
+        Coinbase Pro Fills CSV file
+```
+Il faut fournir les CSV récupérés sur Coinbase.
+
+Les colones du CSV Account doivent être : `portfolio,type,time,amount,balance,amount/balance unit,transfer id,trade id,order id`
+
+Les colones du CSV Fills doivent être : `portfolio,trade id,product,side,created at,size,size unit,price,fee,total,price/fee/total unit`
+
 #### ETH [![Support avancé](https://img.shields.io/badge/support-avanc%C3%A9-green)](#eth-)
 
 ```
@@ -449,6 +463,15 @@ Les colones du CSV de Transfer doivent être : `TXID, Created, Received, Sent, T
 ```
 
 Les colones du CSV doivent être : `Operation Date,Currency Ticker,Operation Type,Operation Amount,Operation Fees,Operation Hash,Account Name,Account xpub`
+
+#### Monero Wallet [![Support bon](https://img.shields.io/badge/support-bon-blue)](#monero-wallet-)
+
+```
+  --monero
+        Monero Wallet CSV file
+```
+
+Les colones du CSV doivent être : `blockHeight,epoch,date,direction,amount,atomicAmount,fee,txid,label,subaddrAccount,paymentId`
 
 #### MyCelium [![Support déprécié](https://img.shields.io/badge/support-d%C3%A9pr%C3%A9ci%C3%A9-red)](#mycelium-)
 

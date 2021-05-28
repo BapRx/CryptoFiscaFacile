@@ -16,12 +16,14 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/cfg"
 	"github.com/fiscafacile/CryptoFiscaFacile/coinbase"
+	"github.com/fiscafacile/CryptoFiscaFacile/coinbasepro"
 	"github.com/fiscafacile/CryptoFiscaFacile/cryptocom"
 	"github.com/fiscafacile/CryptoFiscaFacile/etherscan"
 	"github.com/fiscafacile/CryptoFiscaFacile/hitbtc"
 	"github.com/fiscafacile/CryptoFiscaFacile/kraken"
 	"github.com/fiscafacile/CryptoFiscaFacile/ledgerlive"
 	"github.com/fiscafacile/CryptoFiscaFacile/localbitcoin"
+	"github.com/fiscafacile/CryptoFiscaFacile/monero"
 	"github.com/fiscafacile/CryptoFiscaFacile/mycelium"
 	"github.com/fiscafacile/CryptoFiscaFacile/poloniex"
 	"github.com/fiscafacile/CryptoFiscaFacile/revolut"
@@ -191,6 +193,27 @@ func main() {
 			log.Fatal("Error parsing Coinbase CSV file:", err)
 		}
 	}
+	cbp := coinbasepro.New()
+	for _, file := range config.Exchanges.CoinbasePro.CSV.Trades {
+		recordFile, err := os.Open(file)
+		if err != nil {
+			log.Fatal("Error opening Coinbase Pro Fills CSV file:", err)
+		}
+		err = cbp.ParseFillsCSV(recordFile, config.Exchanges.CoinbasePro.Account)
+		if err != nil {
+			log.Fatal("Error parsing Coinbase Pro Fills CSV file:", err)
+		}
+	}
+	for _, file := range config.Exchanges.CoinbasePro.CSV.Transfers {
+		recordFile, err := os.Open(file)
+		if err != nil {
+			log.Fatal("Error opening Coinbase Pro Account CSV file:", err)
+		}
+		err = cbp.ParseAccountCSV(recordFile, config.Exchanges.CoinbasePro.Account)
+		if err != nil {
+			log.Fatal("Error parsing Coinbase Pro Account CSV file:", err)
+		}
+	}
 	for _, file := range config.Exchanges.CdcApp.CSV.All {
 		recordFile, err := os.Open(file)
 		if err != nil {
@@ -301,6 +324,17 @@ func main() {
 		err = lb.ParseTransferCSV(recordFile, config.Exchanges.LocalBitcoins.Account)
 		if err != nil {
 			log.Fatal("Error parsing Local Bitcoin Transfer CSV file:", err)
+		}
+	}
+	xmr := monero.New()
+	for _, file := range config.Wallets.Monero.CSV.All {
+		recordFile, err := os.Open(file)
+		if err != nil {
+			log.Fatal("Error opening Monero CSV file:", err)
+		}
+		err = xmr.ParseCSV(recordFile, *categ)
+		if err != nil {
+			log.Fatal("Error parsing Monero CSV file:", err)
 		}
 	}
 	mc := mycelium.New()
@@ -438,6 +472,13 @@ func main() {
 			blkst.DetectLBTC(btc)
 		}
 	}
+	// Merge TXs from differents methods within same Source
+	b.MergeTXs()
+	bs.MergeTXs()
+	btrx.MergeTXs()
+	cdc.MergeTXs()
+	hb.MergeTXs()
+	kr.MergeTXs()
 	// Set delisted coins balances to zero
 	if len(config.Exchanges.Binance.DelistedCoins) > 0 {
 		for _, dc := range config.Exchanges.Binance.DelistedCoins {
@@ -484,6 +525,11 @@ func main() {
 			cb.TXsByCategory.RemoveDelistedCoins(dc)
 		}
 	}
+	if len(config.Exchanges.CoinbasePro.DelistedCoins) > 0 {
+		for _, dc := range config.Exchanges.CoinbasePro.DelistedCoins {
+			cbp.TXsByCategory.RemoveDelistedCoins(dc)
+		}
+	}
 	if len(config.Exchanges.Poloniex.DelistedCoins) > 0 {
 		for _, dc := range config.Exchanges.Poloniex.DelistedCoins {
 			pl.TXsByCategory.RemoveDelistedCoins(dc)
@@ -496,6 +542,7 @@ func main() {
 		sources.Add(bs.Sources)
 		sources.Add(btrx.Sources)
 		sources.Add(cb.Sources)
+		sources.Add(cbp.Sources)
 		sources.Add(cdc.Sources)
 		sources.Add(hb.Sources)
 		sources.Add(kr.Sources)
@@ -515,11 +562,13 @@ func main() {
 	global.Add(bs.TXsByCategory)
 	global.Add(btrx.TXsByCategory)
 	global.Add(cb.TXsByCategory)
+	global.Add(cbp.TXsByCategory)
 	global.Add(cdc.TXsByCategory)
 	global.Add(hb.TXsByCategory)
 	global.Add(kr.TXsByCategory)
 	global.Add(ll.TXsByCategory)
 	global.Add(lb.TXsByCategory)
+	global.Add(xmr.TXsByCategory)
 	global.Add(mc.TXsByCategory)
 	global.Add(pl.TXsByCategory)
 	global.Add(revo.TXsByCategory)

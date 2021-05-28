@@ -55,6 +55,7 @@ type Exchanges struct {
 	CdcApp        ExchangeConfig `yaml:"cdc-app"`
 	CdcEx         ExchangeConfig `yaml:"cdc-exchange"`
 	Coinbase      ExchangeConfig `yaml:"coinbase"`
+	CoinbasePro   ExchangeConfig `yaml:"coinbase-pro"`
 	HitBTC        ExchangeConfig `yaml:"hitbtc"`
 	Kraken        ExchangeConfig `yaml:"kraken"`
 	LocalBitcoins ExchangeConfig `yaml:"localbitcoins"`
@@ -107,6 +108,7 @@ type WalletConfig struct {
 
 type Wallets struct {
 	LedgerLive WalletConfig `yaml:"ledgerlive"`
+	Monero     WalletConfig `yaml:"monero"`
 	MyCelium   WalletConfig `yaml:"mycelium"`
 }
 
@@ -170,10 +172,10 @@ func LoadConfig() (*Config, error) {
 	pflag.BoolVar(&config.Options.CashInBNC.Y2019, "cashin-bnc-2019", config.Options.CashInBNC.Y2019, "Convert AirDrops/CommercialRebates/Interets/Minings/Referrals into CashIn for 2019's Txs in 2086")
 	pflag.BoolVar(&config.Options.CashInBNC.Y2020, "cashin-bnc-2020", config.Options.CashInBNC.Y2020, "Convert AirDrops/CommercialRebates/Interets/Minings/Referrals into CashIn for 2020's Txs in 2086")
 	pflag.BoolVarP(&config.Options.Check, "check", "c", config.Options.Check, "Check and Display consistency")
-	pflag.StringVar(&config.Options.CurrencyFilter, "currency-filter", config.Options.CurrencyFilter, "Currencies to be filtered in Transactions Display (comma separated list)")
+	pflag.StringVarP(&config.Options.CurrencyFilter, "currency-filter", "f", config.Options.CurrencyFilter, "Currencies to be filtered in Transactions Display (comma separated list)")
 	pflag.StringVar(&config.Options.LogFile, "log", config.Options.LogFile, "Log file")
 	pflag.BoolVar(&config.Options.Debug, "exact", config.Options.Debug, "Display exact amount (no rounding)")
-	pflag.StringVar(&config.Options.TxsDisplay, "txs-display", config.Options.TxsDisplay, "Display Transactions By Category : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc")
+	pflag.StringVarP(&config.Options.TxsDisplay, "txs-display", "t", config.Options.TxsDisplay, "Display Transactions By Category : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc")
 	// Sources
 	pflag.StringVar(&config.Options.TxsCategory, "txs-categ", config.Options.TxsCategory, "Transactions Categories CSV file")
 	pflag.StringVar(&config.Tools.CoinAPI.Key, "coinapi-key", config.Tools.CoinAPI.Key, "CoinAPI Key (https://www.coinapi.io/pricing?apikey)")
@@ -204,6 +206,8 @@ func LoadConfig() (*Config, error) {
 	pflag.StringVar(&config.Exchanges.HitBTC.API.Key, "hitbtc-api-key", config.Exchanges.HitBTC.API.Key, "HitBTC API Key")
 	pflag.StringVar(&config.Exchanges.HitBTC.API.Secret, "hitbtc-api-secret", config.Exchanges.HitBTC.API.Secret, "HitBTC API Secret")
 	pflag.StringSliceVar(&config.Exchanges.Coinbase.CSV.All, "coinbase", config.Exchanges.Coinbase.CSV.All, "Coinbase CSV file")
+	pflag.StringSliceVar(&config.Exchanges.CoinbasePro.CSV.Trades, "coinbase-pro-fills", config.Exchanges.CoinbasePro.CSV.Trades, "CoinbasePro Fills CSV file")
+	pflag.StringSliceVar(&config.Exchanges.CoinbasePro.CSV.Transfers, "coinbase-pro-account", config.Exchanges.CoinbasePro.CSV.Transfers, "CoinbasePro Account CSV file")
 	pflag.StringSliceVar(&config.Exchanges.CdcApp.CSV.All, "cdc-app-crypto", config.Exchanges.CdcApp.CSV.All, "Crypto.com App Crypto Wallet CSV file")
 	pflag.StringVar(&config.Exchanges.CdcEx.API.Key, "cdc-ex-api-key", config.Exchanges.CdcEx.API.Key, "Crypto.com Exchange API Key")
 	pflag.StringVar(&config.Exchanges.CdcEx.API.Secret, "cdc-ex-api-secret", config.Exchanges.CdcEx.API.Secret, "Crypto.com Exchange Secret Key")
@@ -217,6 +221,7 @@ func LoadConfig() (*Config, error) {
 	pflag.StringSliceVar(&config.Wallets.LedgerLive.CSV.All, "ledgerlive", config.Wallets.LedgerLive.CSV.All, "LedgerLive CSV file")
 	pflag.StringSliceVar(&config.Exchanges.LocalBitcoins.CSV.Trades, "lb-trade", config.Exchanges.LocalBitcoins.CSV.Trades, "Local Bitcoin Trade CSV file")
 	pflag.StringSliceVar(&config.Exchanges.LocalBitcoins.CSV.Transfers, "lb-transfer", config.Exchanges.LocalBitcoins.CSV.Transfers, "Local Bitcoin Transfer CSV file")
+	pflag.StringSliceVar(&config.Wallets.Monero.CSV.All, "monero", config.Wallets.Monero.CSV.All, "Monero CSV file")
 	pflag.StringSliceVar(&config.Wallets.MyCelium.CSV.All, "mycelium", config.Wallets.MyCelium.CSV.All, "MyCelium CSV file")
 	pflag.StringSliceVar(&config.Exchanges.Poloniex.CSV.Trades, "poloniex-trades", config.Exchanges.Poloniex.CSV.Trades, "Poloniex Trades CSV file")
 	pflag.StringSliceVar(&config.Exchanges.Poloniex.CSV.Deposits, "poloniex-deposits", config.Exchanges.Poloniex.CSV.Deposits, "Poloniex Deposits CSV file")

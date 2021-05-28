@@ -3,6 +3,7 @@ package cryptocom
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -19,15 +20,15 @@ type withdrawalTX struct {
 }
 
 func (api *apiEx) getWithdrawalsTXs(loc *time.Location) {
-	today := time.Now()
-	thisYear := today.Year()
-	for y := thisYear; y > 2019; y-- {
-		for q := 4; q > 0; q-- {
+	for y := 2019; y <= time.Now().Year(); y++ {
+		for q := 1; q < 5; q++ {
 			fmt.Print(".")
 			withHist, err := api.getWithdrawalHistory(y, q, loc)
 			if err != nil {
-				api.doneWit <- err
-				return
+				// api.doneWit <- err
+				// return
+				log.Println(err)
+				break
 			}
 			for _, wit := range withHist.Result.WithdrawalList {
 				tx := withdrawalTX{}

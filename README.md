@@ -189,6 +189,10 @@ Ce CSV identifie une TX par son `TxID` (identifiant dans la blockchain BTC, ETH,
 
 - GIFT : va catégoriser la TX en don `Gifts`. Utile si vous offrez des cryptos à un ami pour lui montrer comment cela fonctionne lors de son anniversaire.
 
+- INT : va catégoriser la TX en intérêt `Interests`.
+
+- AIR : va catégoriser la TX en `AirDrops`.
+
 - FEE : va associer toutes les TXs dont les Hash sont concaténées entre eux avec un point virgule ";" et fournis dans `Description` à la TX dont le Hash est donné dans `TXID`. Utile pour faire le ménage dans la catégorie `Fees`.
 
 - SHIT : va ignorer la TX donc aucune catégorisation. Utile si vous avez des Shitcoins dont vous ne voulez pas.
@@ -557,13 +561,13 @@ Utilisé pour la Source [ETH](#eth-), si vous ne la fournissez pas les requêtes
   --2086
         Export Cerfa 2086 in 2086.xlsx
   --cashin-bnc-2019
-        Convert AirDrops/CommercialRebates/Interets/Minings/Referrals into CashIn for 2019's Txs in 2086
+        Convert AirDrops/CommercialRebates/Interests/Minings/Referrals into CashIn for 2019's Txs in 2086
   --cashin-bnc-2020
-        Convert AirDrops/CommercialRebates/Interets/Minings/Referrals into CashIn for 2020's Txs in 2086
+        Convert AirDrops/CommercialRebates/Interests/Minings/Referrals into CashIn for 2020's Txs in 2086
 ```
 Cela vous génère automatiquement le formulaire 2086 !
 
-Il y a deux façons de considérer les AirDrops/CommercialRebates/Interets/Minings/Referrals :
+Il y a deux façons de considérer les AirDrops/CommercialRebates/Interests/Minings/Referrals :
 
 - soit ils sont ajoutés simplement au portefeuille avec une valeur de 0€
 

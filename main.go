@@ -406,7 +406,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Uphold CSV file:", err)
 		}
-		err = uh.ParseCSV(recordFile, config.Exchanges.Uphold.Account)
+		err = uh.ParseCSV(recordFile, *categ, config.Exchanges.Uphold.Account)
 		if err != nil {
 			log.Fatal("Error parsing Uphold CSV file:", err)
 		}
@@ -587,7 +587,7 @@ func main() {
 		global.FindCashInOut(config.Options.Native)
 		fmt.Println("Finished")
 	}
-	global.SortTXsByDate(true)
+	global.SortByDate(true)
 	if config.Options.Stats {
 		global.PrintStats(config.Options.Native)
 	}

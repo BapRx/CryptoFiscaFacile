@@ -188,7 +188,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Coinbase CSV file:", err)
 		}
-		err = cb.ParseCSV(recordFile, config.Exchanges.Coinbase.Account)
+		err = cb.ParseCSV(recordFile, *categ, config.Exchanges.Coinbase.Account)
 		if err != nil {
 			log.Fatal("Error parsing Coinbase CSV file:", err)
 		}
@@ -252,6 +252,16 @@ func main() {
 		err = cdc.ParseCSVExchangeStake(recordFile)
 		if err != nil {
 			log.Fatal("Error parsing Crypto.com Exchange Stake CSV file:", err)
+		}
+	}
+	for _, file := range config.Exchanges.CdcEx.CSV.Trades {
+		recordFile, err := os.Open(file)
+		if err != nil {
+			log.Fatal("Error opening Crypto.com Exchange Spot Trade CSV file:", err)
+		}
+		err = cdc.ParseCSVExchangeSpotTrade(recordFile)
+		if err != nil {
+			log.Fatal("Error parsing Crypto.com Exchange Spot Trade CSV file:", err)
 		}
 	}
 	for _, file := range config.Exchanges.CdcEx.CSV.Supercharger {
@@ -413,7 +423,7 @@ func main() {
 	}
 	// Wait for API access to finish
 	if config.Exchanges.Binance.API.Key != "" && config.Exchanges.Binance.API.Secret != "" {
-		err := b.WaitFinish(config.Exchanges.Bitstamp.Account)
+		err := b.WaitFinish(config.Exchanges.Binance.Account)
 		if err != nil {
 			log.Fatal("Error getting Binance API TXs:", err)
 		}
@@ -622,8 +632,10 @@ func main() {
 	}
 	if config.Options.Export2086 || config.Options.Display2086 {
 		c2086 := New2086()
+		c2086.cashInBNC[2019] = config.Options.CashInBNC.Y2019
+		c2086.cashInBNC[2020] = config.Options.CashInBNC.Y2020
 		fmt.Print("Début du calcul pour le 2086...")
-		err = c2086.CalculatePVMV(global, config.Options.Native, loc, config.Options.CashInBNC)
+		err = c2086.CalculatePVMV(global, config.Options.Native, loc)
 		fmt.Println("Fini")
 		if err != nil {
 			log.Fatal(err)

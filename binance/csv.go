@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
+	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
 
 type csvTX struct {
 	Time      time.Time
+	ID        string
 	Account   string
 	Operation string
 	Coin      string
@@ -37,6 +39,7 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing Time", r[0])
 				}
+				tx.ID = utils.GetUniqueID(SOURCE + tx.Time.String())
 				tx.Account = r[1]
 				tx.Operation = r[2]
 				tx.Coin = r[3]
@@ -75,27 +78,45 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err
 					tx.Operation == "The Easiest Way to Trade" {
 					found := false
 					for i, ex := range b.TXsByCategory["Exchanges"] {
-						if ex.SimilarDate(2*time.Second, tx.Time) {
-							found = true
-							if b.TXsByCategory["Exchanges"][i].Items == nil {
-								b.TXsByCategory["Exchanges"][i].Items = make(map[string]wallet.Currencies)
-							}
+						if ex.SimilarDate(time.Minute, tx.Time) {
+							symbolsMatch := true
 							if tx.Change.IsPositive() {
-								b.TXsByCategory["Exchanges"][i].Items["To"] = append(b.TXsByCategory["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.Coin, Amount: tx.Change})
+								if len(ex.Items["To"]) > 0 {
+									if ex.Items["To"][0].Code != tx.Coin {
+										symbolsMatch = false
+									}
+								}
 							} else {
-								if tx.Operation == "Fee" {
-									b.TXsByCategory["Exchanges"][i].Items["Fee"] = append(b.TXsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.Coin, Amount: tx.Change.Neg()})
-								} else {
-									b.TXsByCategory["Exchanges"][i].Items["From"] = append(b.TXsByCategory["Exchanges"][i].Items["From"], wallet.Currency{Code: tx.Coin, Amount: tx.Change.Neg()})
+								if tx.Operation != "Fee" {
+									if len(ex.Items["From"]) > 0 {
+										if ex.Items["From"][0].Code != tx.Coin {
+											symbolsMatch = false
+										}
+									}
 								}
 							}
-							if !tx.Fee.IsZero() {
-								b.TXsByCategory["Exchanges"][i].Items["Fee"] = append(b.TXsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.Coin, Amount: tx.Fee})
+							if symbolsMatch {
+								found = true
+								if b.TXsByCategory["Exchanges"][i].Items == nil {
+									b.TXsByCategory["Exchanges"][i].Items = make(map[string]wallet.Currencies)
+								}
+								if tx.Change.IsPositive() {
+									b.TXsByCategory["Exchanges"][i].Items["To"] = append(b.TXsByCategory["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.Coin, Amount: tx.Change})
+								} else {
+									if tx.Operation == "Fee" {
+										b.TXsByCategory["Exchanges"][i].Items["Fee"] = append(b.TXsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.Coin, Amount: tx.Change.Neg()})
+									} else {
+										b.TXsByCategory["Exchanges"][i].Items["From"] = append(b.TXsByCategory["Exchanges"][i].Items["From"], wallet.Currency{Code: tx.Coin, Amount: tx.Change.Neg()})
+									}
+								}
+								if !tx.Fee.IsZero() {
+									b.TXsByCategory["Exchanges"][i].Items["Fee"] = append(b.TXsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.Coin, Amount: tx.Fee})
+								}
 							}
 						}
 					}
 					if !found {
-						t := wallet.TX{Timestamp: tx.Time, Note: "Binance CSV : Buy Sell Fee " + tx.Remark}
+						t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: "Binance CSV : Buy Sell Fee " + tx.Remark}
 						t.Items = make(map[string]wallet.Currencies)
 						if !tx.Fee.IsZero() {
 							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Coin, Amount: tx.Fee})
@@ -120,8 +141,9 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err
 					tx.Operation == "DeFi Staking Interest" ||
 					tx.Operation == "Savings Interest" ||
 					tx.Operation == "Launchpool Interest" ||
-					tx.Operation == "Commission History" {
-					t := wallet.TX{Timestamp: tx.Time, Note: "Binance CSV : " + tx.Operation + " " + tx.Remark}
+					tx.Operation == "Commission History" ||
+					tx.Operation == "Commission Fee Shared With You" {
+					t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: "Binance CSV : " + tx.Operation + " " + tx.Remark}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Coin, Amount: tx.Change})
 					if !tx.Fee.IsZero() {
@@ -136,14 +158,15 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err
 						b.TXsByCategory["Minings"] = append(b.TXsByCategory["Minings"], t)
 					} else if tx.Operation == "Savings Interest" {
 						b.TXsByCategory["Interests"] = append(b.TXsByCategory["Interests"], t)
-					} else if tx.Operation == "Commission History" {
+					} else if tx.Operation == "Commission History" ||
+						tx.Operation == "Commission Fee Shared With You" {
 						b.TXsByCategory["Referrals"] = append(b.TXsByCategory["Referrals"], t)
 					} else {
 						b.TXsByCategory["Deposits"] = append(b.TXsByCategory["Deposits"], t)
 					}
 				} else if tx.Operation == "Withdraw" ||
 					tx.Operation == "transfer_out" {
-					t := wallet.TX{Timestamp: tx.Time, Note: "Binance CSV : " + tx.Operation + " " + tx.Remark}
+					t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: "Binance CSV : " + tx.Operation + " " + tx.Remark}
 					t.Items = make(map[string]wallet.Currencies)
 					if tx.Fee.IsZero() {
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Coin, Amount: tx.Change.Neg()})

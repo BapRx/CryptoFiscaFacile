@@ -167,7 +167,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Bitstamp CSV file:", err)
 		}
-		err = bs.ParseCSV(recordFile, config.Exchanges.Bitstamp.Account)
+		err = bs.ParseCSV(recordFile, *categ, config.Options.Native, config.Exchanges.Bitstamp.Account)
 		if err != nil {
 			log.Fatal("Error parsing Bitstamp CSV file:", err)
 		}
@@ -587,7 +587,7 @@ func main() {
 	global.Add(btc.TXsByCategory)
 	global.Add(bc.TXsByCategory)
 	fmt.Print("Merging Deposits with Withdrawals into Transfers...")
-	global.FindTransfers()
+	global.FindTransfers(*categ)
 	fmt.Println("Finished")
 	if config.Options.ExportStock {
 		global.StockToXlsx("stock.xlsx")

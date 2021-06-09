@@ -124,7 +124,9 @@ func (pta *TotalBuyingPrice) CalculateFIFO(global wallet.TXsByCategory, native s
 	// Consolidate all knowns TXs
 	var allTXs wallet.TXs
 	for k := range global {
+		// if k != "Transfers" { // Transfers are not compatible with CUS
 		allTXs = append(allTXs, global[k]...)
+		// }
 	}
 	allTXs.SortByDate(false)
 	for crypto, quantity := range globalWallet2019Jan1.Currencies {
@@ -247,7 +249,7 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 	c2086.commercialRebates[2019] = commercialRebates.Before(jan1st2020).GetBalances(true, false)
 	c2086.commercialRebates[2020] = commercialRebates.After(jan1st2020).Before(jan1st2021).GetBalances(true, false)
 	cashInOut = append(cashInOut, commercialRebates...)
-	cashInOut = append(cashInOut, global["Gifts"].After(jan1st2019).AddFromNativeValue(native).AddToNativeValue(native)...)
+	cashInOut = append(cashInOut, global["Gifts"].After(jan1st2019).AddFromNativeValue(native)...)
 	var referrals wallet.TXs
 	referrals = append(referrals, global["Referrals"].After(jan1st2019).AddFromNativeValue(native)...)
 	c2086.referrals[2019] = referrals.Before(jan1st2020).GetBalances(true, false)
